@@ -2,13 +2,31 @@
 	{
 		"name": "taxonomies",
 		"uid": "taxonomy_id",
-		"dependencies": [],
-		"uniques": ["taxonomy"]
+		"uniques": ["taxonomy_id"],
+		"fields": [
+			{
+				"name": "property",
+				"type": "string",
+				"option": "not null"
+			}
+		]
 	},
 	{
 		"name": "properties",
 		"uid": "property_id",
 		"dependencies": ["taxonomies"],
-		"uniques": ["property"]
+		"uniques": ["taxonomy_id","property_id"],
+		"fields": [
+			{
+				"name": "taxonomy",
+				"type": "string",
+				"option": "not null"
+			},
+			{
+				"name": "parent",
+				"type": "int",
+				"option": ""
+			}
+		]
 	}
 ]

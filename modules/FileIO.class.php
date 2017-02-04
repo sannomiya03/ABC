@@ -14,7 +14,7 @@ class FileIO{
 		if(!file_exists($path)) return new stdClass;
 		$json = file_get_contents($path);
 		$json = mb_convert_encoding($json, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
-		return json_decode($json,true);
+		return json_decode($json);
 	}
 
 	public static function loadCSV($path){
@@ -30,7 +30,7 @@ class FileIO{
 		return $lines;
 	}
 
-	public static function save($array,$name){
+	public static function save($array, $name){
 		$json = fopen($name, 'w+b');
 		fwrite($json, json_encode($array, JSON_UNESCAPED_UNICODE));
 		fclose($json);

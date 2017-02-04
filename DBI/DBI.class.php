@@ -1,18 +1,17 @@
 <?php
 require_once dirname(__FILE__)."/Core.class.php";
-require_once dirname(__FILE__)."/modules/FileUploader.class.php";
-require_once dirname(__FILE__)."/modules/Console.class.php";
-
+require_once dirname(__FILE__)."/../modules/FileUploader.class.php";
+require_once dirname(__FILE__)."/../modules/Console.class.php";
 
 class DBI extends DBICore{
 	public $uploader;
 	
 	public function __construct(){
-		$this->uploader = new FileUploader();
 		parent::__construct();
+		$this->uploader = new FileUploader();
 	}
 
-	public function append($table, $uid, $keys, $vals, $uniques==null){
+	public function append($table, $uid, $keys, $vals, $uniques=null){
 		array_push( $keys, "created" );
 		array_push( $vals, null );
 		return $this->addRecord($table, $uid, $keys, $vals, $uniques);

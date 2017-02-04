@@ -1,22 +1,22 @@
 [
 	{
-		"label"    : "name",
-		"dataType" : "string",
-		"option"   : "unique"
+		"name" : "name",
+		"type" : "string",
+		"option" : ""
 	},
 	{
-		"label"    : "width",
-		"dataType" : "int",
-		"option"   : ""
+		"name" : "width",
+		"type" : "int",
+		"option" : ""
 	},
 	{
-		"label"    : "height",
-		"dataType" : "int",
-		"option"   : ""
+		"name" : "height",
+		"type" : "int",
+		"option" : ""
 	},
 	{
-		"label"    : "description",
-		"dataType" : "text",
-		"option"   : ""
+		"name" : "description",
+		"type" : "text",
+		"option" : ""
 	}
 ]

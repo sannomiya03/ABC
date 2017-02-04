@@ -7,7 +7,7 @@ class FileUploader{
 	public $srcDir, $saveDir;
 
 	public function __construct(){
-		$this->saveDir = dirname(__FILE__)."/".$SAVE_DIR;
+		$this->saveDir = dirname(__FILE__)."/".self::$SAVE_DIR;
 	}
 	
 	public function uploadImage( $file ){

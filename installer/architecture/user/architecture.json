@@ -3,18 +3,21 @@
 		"name": "paper_groups",
 		"uid": "paper_group_id",
 		"dependencies": [],
-		"uniques": ["name"]
+		"uniques": ["name"],
+		"useProperty": true
 	},
 	{
 		"name": "papers",
 		"uid": "paper_id",
 		"dependencies": ["paper_groups"],
-		"uniques": ["paper_group_id, name"]
+		"uniques": ["paper_group_id, name"],
+		"useProperty": true
 	},
 	{
 		"name": "images",
 		"uid": "image_id",
 		"dependencies": ["papers"],
-		"uniques": ["file_path"]
+		"uniques": ["file_path"],
+		"useProperty": true
 	}
 ]

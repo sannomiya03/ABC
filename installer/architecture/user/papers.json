@@ -1,42 +1,42 @@
 [
 	{
-		"label"    : "name",
-		"dataType" : "string",
-		"option"   : "not null"
+		"name" : "name",
+		"type" : "string",
+		"option" : "not null"
 	},
 	{
-		"label"    : "thickness",
-		"dataType" : "string",
-		"option"   : "not null"
+		"name" : "thickness",
+		"type" : "string",
+		"option" : "not null"
 	},
 	{
-		"label"    : "price",
-		"dataType" : "int",
-		"option"   : "not null"
+		"name" : "price",
+		"type" : "int",
+		"option" : "not null"
 	},
 	{
-		"label"    : "packing_price",
-		"dataType" : "int",
-		"option"   : "not null"
+		"name" : "packing_price",
+		"type" : "int",
+		"option" : "not null"
 	},
 	{
-		"label"    : "packing_unit",
-		"dataType" : "int",
-		"option"   : "not null"
+		"name" : "packing_unit",
+		"type" : "int",
+		"option" : "not null"
 	},
 	{
-		"label"    : "use_for_food",
-		"dataType" : "boolean",
-		"option"   : "not null"
+		"name" : "use_for_food",
+		"type" : "boolean",
+		"option" : "not null"
 	},
 	{
-		"label"    : "description",
-		"dataType" : "text",
-		"option"   : "not null"
+		"name" : "description",
+		"type" : "text",
+		"option" : "not null"
 	},
 	{
-		"label"    : "thumbnail",
-		"dataType" : "string",
-		"option"   : ""
+		"name" : "thumbnail",
+		"type" : "string",
+		"option" : ""
 	}
 ]

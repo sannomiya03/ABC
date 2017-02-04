@@ -1,7 +1,7 @@
 <?php
-require_once dirname(__FILE__)."/modules/Parser.class.php";
-require_once dirname(__FILE__)."/modules/Console.class.php";
-require dirname(__FILE__)."/modules/FileIO.class.php";
+require_once dirname(__FILE__)."/Parser.class.php";
+require_once dirname(__FILE__)."/../modules/Console.class.php";
+require_once dirname(__FILE__)."/../modules/FileIO.class.php";
 
 class DBICore{
 	public static $SETTING_PATH = "../setting.json";
@@ -9,14 +9,14 @@ class DBICore{
 	
 	public function __construct(){
 		$setting = FileIO::loadJSON(dirname(__FILE__)."/".self::$SETTING_PATH);
-		$host = $setting->host;
-		$dbName = $setting->dbName;
-		$user = $setting->user;
-		$pass = $setting->pass;
-		$dbms = $setting->dbms;
+		$this->host = $setting->host;
+		$this->dbName = $setting->db_name;
+		$this->user = $setting->user;
+		$this->pass = $setting->pass;
+		$this->dbms = $setting->dbms;
 
 		if( $dbms == "mysql" ){
-			try{ $pdo = new PDO( "mysql:host=$host;dbname=$dbName;charset=utf8;", $user, $pass ); }
+			try{ $pdo = new PDO( "mysql:host=$host; dbname=$dbName;charset=utf8;", $user, $pass ); }
 			catch( PDOException $e ){ var_dump($e->getMessage()); exit; }
 		}else{
 			if(!file_exists(dirname(__FILE__)."/../SQLite")){
@@ -36,6 +36,7 @@ class DBICore{
 	 * --------------------------------------------- */
 	public function createTable($table, $sql){
 		$sql = "CREATE TABLE IF NOT EXISTS $table ($sql)";
+		Console::logln($sql,"Purple");
 		$stmt = $this->pdo->exec($sql);
 	}
 	

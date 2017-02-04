@@ -1,11 +1,9 @@
 <?php
-// require_once dirname(__FILE__)."/DAMS.DB_installer.class.php";
-require_once dirname(__FILE__)."/DBArcMaker.class.php";
+require_once dirname(__FILE__)."/installer.class.php";
 require_once dirname(__FILE__)."/../modules/Console.class.php";
 
 Console::logln("--BEGIN--");
-
-$manifest = DBArcMaker::makeManifest();
+Installer::install();
 
 // foreach($files as $file){
 // 	$ext = File::getExt($file);

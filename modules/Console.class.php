@@ -25,18 +25,20 @@ class Console{
 				break;
 			case "boolean":
 				if($var) echo "\033[".self::getColorCode("Green")."m"."true"."\033[0m";
-				else echo "\033[".self::getColorCode("LightRed")."m"."false"."\033[0m";
+				else echo "\033[".self::getColorCode("Red")."m"."false"."\033[0m";
 				break;
 			case "array":
 			case "object":
 				$index = 0;
 				$layer++;
 				foreach($var as $key=>$val){
+					$isArray = (gettype($val)=="array"||gettype($val)=="object");
+					$isEmptyArray = $isArray && count((array)$val)==0;
 					self::log("[$key]", "Cyan", $layer, true);
 					self::log(" ", $color);
-					if(gettype($val)=="array"||gettype($val)=="object") echo "\n";
+					if($isArray && !$isEmptyArray) echo "\n";
 					self::log($val, $color, $layer);
-					if((gettype($val)=="array"||gettype($val)=="object") && count((array)$val)==0) self::log("[empty]", $color, $layer+1, true);
+					if($isEmptyArray) self::log("(empty)", "Purple");
 					if($index<count((array)$var)-1) echo "\n";
 					$index++;
 				}
