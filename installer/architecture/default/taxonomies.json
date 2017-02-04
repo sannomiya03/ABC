@@ -1,0 +1,10 @@
+[
+	{
+		"name": "taxonomy",
+		"type": "string"
+	},
+	{
+		"name": "parent",
+		"type": "int"
+	}
+]

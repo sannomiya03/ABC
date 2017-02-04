@@ -1,0 +1,12 @@
+[
+	{
+		"name": "taxonomies",
+		"uid": "taxonomy_id",
+		"dependencies": []
+	},
+	{
+		"name": "properties",
+		"uid": "property_id",
+		"dependencies": ["taxonomies"]
+	}
+]
