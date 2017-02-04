@@ -10,7 +10,7 @@
 		"name": "papers",
 		"uid": "paper_id",
 		"dependencies": ["paper_groups"],
-		"uniques": ["paper_group_id, name"],
+		"uniques": ["paper_group_id", "name"],
 		"useProperty": true
 	},
 	{

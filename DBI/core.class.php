@@ -47,17 +47,22 @@ class DBICore{
 	}
 
 	public function addRecord($table, $uid, $keys, $vals, $uniques=null){
-		printf("	INSERT to %-10s -> ", $table);
-		if($uniques == null) $uniques = $keys;
-		$where = Parser::uniquesToStr($uniques,$keys, $vals);
+		if($uniques == null) $uniques=$keys;
+		$where = Parser::uniquesToWhere($uniques, $keys, $vals);
+		// Console::logln($where, "Black", 6, true);
+		foreach($keys as $index=>$key){
+			// Console::log("[$index] ", "Cyan", 6, true);
+			// Console::logln("$key : $vals[$index] ");
+		}
 		$id = $this->getValue($table, $uid, $where);
+		Console::logln("INSERT to $table (uid: $uid) -> ", "Brown", 5, true);
 		if($id == ""){
-			$id = $this->insert($table, $keys, $vals);
+			$id = $this->insert($table, $keys, $vals, $uniques);
 			$id = $this->getValue($table, $uid, $where);
-			echo "[NEW] id: $id\n";
+			Console::logln("[NEW] id: $id", "Green", 6, true);
 			return $id;
 		}else{
-			echo "[FOUND] id: $id\n";
+			Console::logln("[ALREADY EXIST] id: $id", "Blue", 6, true);
 			return $id;
 		}
 	}
@@ -82,7 +87,7 @@ class DBICore{
 
 	public function getValue($table, $value, $where=""){
 		$field = $this->getRecord($table, $value, $where);
-		if($filed == null) return null;
+		if($field == null) return null;
 		return $field[$value];
 	}
 
@@ -127,6 +132,7 @@ class DBICore{
 		$sql = "DROP TABLE IF EXISTS $table";
 		$this->pdo->exec($sql);
 	}
+
 	public function delete($table, $whereKeys, $whereVals){
 		$where = Parser::arrToParamStr($whereKeys, "=:", " AND ");
 		$sql = "delete from $table where $where";
@@ -147,6 +153,7 @@ class DBICore{
 		if(!$stmt) return null;
 		return $stmt;
 	}
+
 	private function like($table, $field, $whereKey, $whereVal){
 		$sql = "select $field from $table where $whereKey like :key";
 		$stmt = $this->pdo->prepare($sql);
@@ -155,14 +162,16 @@ class DBICore{
 		$stmt->execute();
 		return $stmt;
 	}
-	private function insert($table, $keys, $vals){
-		$keyStr = Parser::arrToParamStr($keys, "", ", ");
-		$valStr = Parser::arrToParamStr($keys, ":", ", ");
+
+	private function insert($table, $keys, $values){
+		$keyStr = Parser::keysToParamStr($keys, "", ", ");
+		$valStr = Parser::keysToBindParamStr($keys, ":", ", ");
 		$sql = "insert into $table ( $keyStr ) value ( $valStr )";
+		// Console::logln($sql, "Black", 7, true);
 		try{
 			$stmt = $this->pdo->prepare($sql);
 			foreach($keys as $index=>$key)
-				$stmt->bindParam(":".$key, $vals[$index], PDO::PARAM_STR);
+				$stmt->bindParam(":".$key, $values[$index], PDO::PARAM_STR);
 			$stmt->execute();
 		}catch(Exception $e){ echo $e->getMessage(); }
 	}
