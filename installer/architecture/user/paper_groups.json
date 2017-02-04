@@ -1,0 +1,22 @@
+[
+	{
+		"label"    : "name",
+		"dataType" : "string",
+		"option"   : "unique"
+	},
+	{
+		"label"    : "width",
+		"dataType" : "int",
+		"option"   : ""
+	},
+	{
+		"label"    : "height",
+		"dataType" : "int",
+		"option"   : ""
+	},
+	{
+		"label"    : "description",
+		"dataType" : "text",
+		"option"   : ""
+	}
+]

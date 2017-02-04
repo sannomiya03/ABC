@@ -1,0 +1,22 @@
+[
+	{
+		"label"    : "name",
+		"dataType" : "string",
+		"option"   : "not null"
+	},
+	{
+		"label"	   : "file_path",
+		"dataType" : "string",
+		"option"   : "not null"
+	},
+	{
+		"label"	   : "description",
+		"dataType" : "text",
+		"option"   : "not null"
+	},
+	{
+		"label"	   : "sort_no",
+		"dataType" : "int",
+		"option"   : ""
+	}
+]

@@ -2,11 +2,13 @@
 	{
 		"name": "taxonomies",
 		"uid": "taxonomy_id",
-		"dependencies": []
+		"dependencies": [],
+		"uniques": ["taxonomy"]
 	},
 	{
 		"name": "properties",
 		"uid": "property_id",
-		"dependencies": ["taxonomies"]
+		"dependencies": ["taxonomies"],
+		"uniques": ["property"]
 	}
 ]

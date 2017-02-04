@@ -11,12 +11,14 @@ class FileIO{
 	}
 
 	public static function loadJSON($path){
+		if(!file_exists($path)) return new stdClass;
 		$json = file_get_contents($path);
 		$json = mb_convert_encoding($json, 'UTF8', 'ASCII,JIS,UTF-8,EUC-JP,SJIS-WIN');
 		return json_decode($json,true);
 	}
 
 	public static function loadCSV($path){
+		if(!file_exists($path)) return array();
 		$file = new SplFileObject($path);
 		$file->setFlags(SplFileObject::READ_CSV);
 		$lines = array();

@@ -1,0 +1,20 @@
+[
+	{
+		"name": "paper_groups",
+		"uid": "paper_group_id",
+		"dependencies": [],
+		"uniques": ["name"]
+	},
+	{
+		"name": "papers",
+		"uid": "paper_id",
+		"dependencies": ["paper_groups"],
+		"uniques": ["paper_group_id, name"]
+	},
+	{
+		"name": "images",
+		"uid": "image_id",
+		"dependencies": ["papers"],
+		"uniques": ["file_path"]
+	}
+]

@@ -10,12 +10,18 @@
 class Console{
 	public static $SHOW_LOG = true;
 	
-	public static function log($var, $color="LightGray", $simple=false){
+	public static function log($var, $color="LightGray", $layer=0, $tab=false){
 		if(!self::$SHOW_LOG) return;
 		switch(gettype($var)){
 			case "string":
 			case "integer":
-				echo "\033[".self::getColorCode($color)."m".$var."\033[0m";
+				$space = "";
+				if($layer>0 && $tab){
+					for($i=0; $i<$layer-1; $i++){
+						$space.="    ";
+					}
+				}
+				echo "\033[".self::getColorCode($color)."m".$space.$var."\033[0m";
 				break;
 			case "boolean":
 				if($var) echo "\033[".self::getColorCode("Green")."m"."true"."\033[0m";
@@ -23,22 +29,18 @@ class Console{
 				break;
 			case "array":
 			case "object":
-				if(!$simple){
-					$index = 0;
-					foreach($var as $key=>$val){
-						self::log("	[".$key."]","Cyan");
-						if($index<count($var)-1) self::logln(" ".$val,$color);
-						else self::log(" ".$val,$color);
-						$index++;
+				$index = 0;
+				$layer++;
+				foreach($var as $key=>$val){
+					if(gettype($val)=="array"||gettype($val)=="object"){
+						self::logln("[$key]", "Cyan", $layer, true);
+					}else{
+						self::log("[$key]", "Cyan", $layer, true);
+						self::log(" ", $color);
 					}
-				}else{
-					if(count($var)>0){
-						foreach($var as $key=>$val){
-							self::log("	[".$key."]","Blue");
-							self::log(" ".$val,$color);
-							return;
-						}
-					}
+					self::log($val, $color, $layer);
+					if($index<count($var)-1) echo "\n";
+					$index++;
 				}
 				break;
 			case "NULL":
@@ -50,9 +52,9 @@ class Console{
 		}
 	}
 
-	public static function logln($var, $color="LightGray",$simple=false){
+	public static function logln($var, $color="LightGray", $layer=0, $tab=false){
 		if(!self::$SHOW_LOG) return;
-		echo self::log($var, $color, $simple)."\n";
+		echo self::log($var, $color, $layer, $tab)."\n";
 	}
 
 	private function getColorCode($color){
