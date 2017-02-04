@@ -1,7 +1,16 @@
 <?php
 require_once dirname(__FILE__)."/config.php";
+require_once dirname(__FILE__)."/modules/Parser.class.php";
+require_once dirname(__FILE__)."/modules/Console.class.php";
 
-class DAI_core{
+Console::logln("hello!");
+Console::logln(true);
+Console::logln(false);
+Console::logln(array("apple","banana"),"Cyan");
+Console::logln((object)array("apple"=>100,"banana"=>200),"Blue",true);
+Console::logln(null);
+
+class DBICore{
 	public $pdo;
 	
 	public function __construct(){
@@ -24,28 +33,28 @@ class DAI_core{
 	/* ---------------------------------------------
 	 * CREATE
 	 * --------------------------------------------- */
-	public function createTable( $table, $sql ){
+	public function createTable($table, $sql){
 		$sql = "CREATE TABLE IF NOT EXISTS $table ($sql)";
-		$stmt = $this->pdo -> exec($sql);
+		$stmt = $this->pdo->exec($sql);
 	}
 	
-	public function alterIndex( $table, $column ){
+	public function alterIndex($table, $column){
 		$sql = "ALTER TABLE $table ADD INDEX $column ($column)";
-		$stmt = $this->pdo -> exec($sql);
+		$stmt = $this->pdo->exec($sql);
 	}
 
-	public function insert( $table, $primKey, $keys, $vals, $uniques=null ){
-		printf("INSERT to %-10s -> ", $table);
-		if( $uniques == null ) $uniques = $keys;
-		$whereStr = $this->createWhereStrUnique( $keys, $vals, $uniques );
-		$id = $this->getValue( $table, $primKey, $whereStr );
-		if( $id == "" ){
-			$id = $this->_insert( $table, $keys, $vals );
-			$id = $this->getValue( $table, $primKey, $whereStr );
-			echo "new item, id: $id\n";
+	public function add($table, $uid, $keys, $vals, $uniques=null){
+		printf("	INSERT to %-10s -> ", $table);
+		if($uniques == null) $uniques = $keys;
+		$where = Parser::uniquesToStr($uniques,$keys, $vals);
+		$id = $this->getValue($table, $uid, $where);
+		if($id == ""){
+			$id = $this->insert($table, $keys, $vals);
+			$id = $this->getValue($table, $uid, $where);
+			echo "[NEW] id: $id\n";
 			return $id;
 		}else{
-			echo "already exist, id: $id\n";
+			echo "[FOUND] id: $id\n";
 			return $id;
 		}
 	}
@@ -53,33 +62,37 @@ class DAI_core{
 	/* ---------------------------------------------
 	 * QUERY
 	 * --------------------------------------------- */
-	public function getField( $table, $field, $where="" ){
-		$stmt = $this->select( $table, $field, $where );
-		if( $stmt == false ) return null;
+	public function getRecord($table, $field, $where=""){
+		$stmt = $this->select($table, $field, $where);
+		if($stmt == false) return null;
 		return $stmt->fetch(PDO::FETCH_ASSOC);
 	}
-	public function getFields( $table, $field, $where="" ){
-		$stmt = $this->select( $table, $field, $where );
-		if( $stmt==null ) return null;
+
+	public function getRecords($table, $field, $where=""){
+		$stmt = $this->select($table, $field, $where);
 		$results = array();
-		foreach( $stmt as $line ) array_push($results, $line);
+		if($stmt==null) return $results;
+		foreach($stmt as $result) array_push($results, $result);
 		return $results;
 	}
-	public function getValue( $table, $val, $where="" ){
-		return $this->getField( $table, $val, $where)[$val];
+
+	public function getValue($table, $value, $where=""){
+		$field = $this->getRecord($table, $value, $where);
+		if($filed == null) return null;
+		return $field[$value];
 	}
-	public function getValues( $table, $val, $where="" ){
-		$records = $this->getFields( $table, $val, $where);
-		$result = array();
-		foreach($records as $record){
-			array_push($result, $record[$val]);
-		}
-		return $result;
-	}
-	public function getFieldLike( $table, $field, $whereKey, $whereVal ){
+
+	public function getValues($table, $value, $where=""){
+		$records = $this->getRecords($table, $value, $where);
 		$results = array();
-		foreach( $this->like($table, $field, $whereKey, $whereVal) as $line ){
-			array_push($results, $line);
+		foreach($records as $record) array_push($result, $record[$value]);
+		return $results;
+	}
+
+	public function getRecordsByLike($table, $field, $whereKey, $whereVal){
+		$results = array();
+		foreach($this->like($table, $field, $whereKey, $whereVal) as $result){
+			array_push($results, $result);
 		}
 		return $results;
 	}
@@ -87,18 +100,16 @@ class DAI_core{
 	/* ---------------------------------------------
 	 * UPDATE
 	 * --------------------------------------------- */
-	public function update( $table, $keys, $vals, $where_keys, $where_vals ){
-		$key_strings = $this->arrToParamStr( $keys, "=:", ", " );
-		$where_str = $this->arrToParamStr( $where_keys, "=:", " AND " );
-		$sql = "UPDATE $table SET $key_strings WHERE $where_str";
-		try {
+	public function update($table, $keys, $vals, $whereKeys, $whereVals){
+		$keyStr = Parser::arrToParamStr($keys, "=:", ", ");
+		$where = Parser::arrToParamStr($whereKeys, "=:", " AND ");
+		$sql = "UPDATE $table SET $keyStr WHERE $where";
+		try{
 			$stmt = $this->pdo->prepare($sql);
-			for($i=0; $i<count($keys); $i++ ){
-				$stmt->bindParam(":".$keys[$i], $vals[$i], PDO::PARAM_STR);
-			}
-			for($i=0; $i<count($where_keys); $i++ ){
-				$stmt->bindParam(":".$where_keys[$i], $where_vals[$i], PDO::PARAM_STR);
-			}
+			foreach($keys as $index=>$key)
+				$stmt->bindParam(":".$key, $vals[$index], PDO::PARAM_STR);
+			foreach($whereKeys as $index=>$key)
+				$stmt->bindParam(":".$key, $whereVals[$index], PDO::PARAM_STR);
 			$stmt->execute();
 		}catch(Exception $e){ echo $e->getMessage(); }
 	}
@@ -106,14 +117,13 @@ class DAI_core{
 	/* ---------------------------------------------
 	 * DELETE
 	 * --------------------------------------------- */
-	public function delete( $table, $where_keys, $where_vals ){
-		$where_str = $this->arrToParamStr( $where_keys, "=:", " AND " );
-		$sql = "delete from $table where $where_str";
+	public function delete($table, $whereKeys, $whereVals){
+		$where = Parser::arrToParamStr($whereKeys, "=:", " AND ");
+		$sql = "delete from $table where $where";
 		try {
 			$stmt = $this->pdo->prepare($sql);
-			for( $i=0; $i<count($where_keys); $i++ ){
-				$stmt->bindParam(":".$where_keys[$i], $where_vals[$i], PDO::PARAM_STR);
-			}
+			foreach($whereKeys as $index=>$key)
+				$stmt->bindParam(":".$key, $whereVals[$index], PDO::PARAM_STR);
 			$stmt->execute();
 		}catch(Exception $e){ echo $e->getMessage(); }
 	}
@@ -121,13 +131,13 @@ class DAI_core{
 	/* ---------------------------------------------
 	 * PRIVATE
 	 * --------------------------------------------- */
-	private function select( $table, $field, $where="" ){
+	private function select($table, $field, $where=""){
 		$sql = "select $field from ".$table." ".$where;
 		$stmt = $this->pdo->query($sql);
 		if(!$stmt) return null;
 		return $stmt;
 	}
-	private function like( $table, $field, $wherekey, $whereval ){
+	private function like($table, $field, $wherekey, $whereval){
 		$sql = "select $field from $table where $wherekey like :key";
 		$stmt = $this->pdo->prepare($sql);
 		$like = '%'."$whereval".'%';
@@ -135,46 +145,15 @@ class DAI_core{
 		$stmt->execute();
 		return $stmt;
 	}
-	private function _insert( $table, $keys, $vals ){
-		$key_strings = $this->arrToStr( $keys, "", ", " );
-		$val_strings = $this->arrToStr( $keys, ":", ", " );
-		$sql = "insert into $table ( $key_strings ) value ( $val_strings )";
-		try {
+	private function insert($table, $keys, $vals){
+		$keyStr = Parser::arrToParamStr($keys, "", ", ");
+		$valStr = Parser::arrToParamStr($keys, ":", ", ");
+		$sql = "insert into $table ( $keyStr ) value ( $valStr )";
+		try{
 			$stmt = $this->pdo->prepare($sql);
-			for( $i=0; $i<count($keys); $i++ ){
-				$stmt->bindParam(":".$keys[$i], $vals[$i], PDO::PARAM_STR);
-			}
+			foreach($keys as $index=>$key)
+				$stmt->bindParam(":".$key, $vals[$index], PDO::PARAM_STR);
 			$stmt->execute();
 		}catch(Exception $e){ echo $e->getMessage(); }
-	}
-	
-	private function arrToStr( $arr, $bindSymbol, $connectSymbol ){
-		$str = "";
-		for( $i=0; $i<count($arr); $i++ ){
-			$str.= $bindSymbol.$arr[$i];
-			if( $i<count($arr)-1 ) $str.= $connectSymbol;
-		}
-		return $str;
-	}
-	private function arrToParamStr( $arr, $bindSymbol, $connectSymbol ){
-		$str = "";
-		for( $i=0; $i<count($arr); $i++ ){
-			$str.= $arr[$i].$bindSymbol.$arr[$i];
-			if( $i<count($arr)-1 ) $str.= $connectSymbol;
-		}
-		return $str;
-	}
-	private function createWhereStrUnique( $keys, $vals, $uniques ){
-		if( count($uniques)==0 ) return "";
-		$where_str = " where ";
-		for( $iu=0; $iu<count($uniques); $iu++ ){
-			for( $ik=0; $ik<count($keys); $ik++ ){
-				if($keys[$ik]==$uniques[$iu]){
-					$where_str .= $keys[$ik]."='".$vals[$ik]."'";
-					if($iu<count($uniques)-1) $where_str .= " AND ";
-				}
-			}
-		}
-		return $where_str;
 	}
 }
