@@ -32,14 +32,12 @@ class Console{
 				$index = 0;
 				$layer++;
 				foreach($var as $key=>$val){
-					if(gettype($val)=="array"||gettype($val)=="object"){
-						self::logln("[$key]", "Cyan", $layer, true);
-					}else{
-						self::log("[$key]", "Cyan", $layer, true);
-						self::log(" ", $color);
-					}
+					self::log("[$key]", "Cyan", $layer, true);
+					self::log(" ", $color);
+					if(gettype($val)=="array"||gettype($val)=="object") echo "\n";
 					self::log($val, $color, $layer);
-					if($index<count($var)-1) echo "\n";
+					if((gettype($val)=="array"||gettype($val)=="object") && count((array)$val)==0) self::log("[empty]", $color, $layer+1, true);
+					if($index<count((array)$var)-1) echo "\n";
 					$index++;
 				}
 				break;
