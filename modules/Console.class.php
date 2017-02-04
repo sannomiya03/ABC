@@ -1,6 +1,17 @@
 <?php
+// PLESE USE LIKE THIS
+// Console::logln("hello!");
+// Console::logln(true);
+// Console::logln(false);
+// Console::logln(array("apple","banana"),"Cyan");
+// Console::logln((object)array("apple"=>100,"banana"=>200),"Blue",true);
+// Console::logln(null);
+
 class Console{
+	public static $SHOW_LOG = true;
+	
 	public static function log($var, $color="LightGray", $simple=false){
+		if(!self::$SHOW_LOG) return;
 		switch(gettype($var)){
 			case "string":
 			case "integer":
@@ -40,6 +51,7 @@ class Console{
 	}
 
 	public static function logln($var, $color="LightGray",$simple=false){
+		if(!self::$SHOW_LOG) return;
 		echo self::log($var, $color, $simple)."\n";
 	}
 

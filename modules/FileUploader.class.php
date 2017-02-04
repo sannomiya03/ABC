@@ -1,12 +1,13 @@
 <?php
-require_once dirname(__FILE__)."/utils/ImageProcessing/createThubmnail.php";
-require_once dirname(__FILE__)."/utils/ImageProcessing/resize.php";
+require_once dirname(__FILE__)."/ImageProcessing/createThubmnail.php";
+require_once dirname(__FILE__)."/ImageProcessing/resize.php";
 
 class FileUploader{
+	public static $SAVE_DIR = "../uploadedFiles";
 	public $srcDir, $saveDir;
 
 	public function __construct(){
-		$this->saveDir = dirname(__FILE__)."/../uploadedFiles";
+		$this->saveDir = dirname(__FILE__)."/".$SAVE_DIR;
 	}
 	
 	public function uploadImage( $file ){

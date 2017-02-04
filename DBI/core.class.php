@@ -1,28 +1,29 @@
 <?php
-require_once dirname(__FILE__)."/config.php";
 require_once dirname(__FILE__)."/modules/Parser.class.php";
 require_once dirname(__FILE__)."/modules/Console.class.php";
-
-Console::logln("hello!");
-Console::logln(true);
-Console::logln(false);
-Console::logln(array("apple","banana"),"Cyan");
-Console::logln((object)array("apple"=>100,"banana"=>200),"Blue",true);
-Console::logln(null);
+require dirname(__FILE__)."/modules/FileIO.class.php";
 
 class DBICore{
-	public $pdo;
+	public static $SETTING_PATH = "../setting.json";
+	public $pdo, $host, $dbName, $user, $pass, $dbms;
 	
 	public function __construct(){
-		if( DBMS == "mysql" ){
-			try{ $pdo = new PDO( "mysql:host=".HOST.";dbname=".DB_NAME.";charset=utf8;", USER, PASS ); }
+		$setting = FileIO::loadJSON(dirname(__FILE__)."/".self::$SETTING_PATH);
+		$host = $setting->host;
+		$dbName = $setting->dbName;
+		$user = $setting->user;
+		$pass = $setting->pass;
+		$dbms = $setting->dbms;
+
+		if( $dbms == "mysql" ){
+			try{ $pdo = new PDO( "mysql:host=$host;dbname=$dbName;charset=utf8;", $user, $pass ); }
 			catch( PDOException $e ){ var_dump($e->getMessage()); exit; }
 		}else{
 			if(!file_exists(dirname(__FILE__)."/../SQLite")){
 				mkdir(dirname(__FILE__)."/../SQLite");
 			}
 			try{
-				$pdo = new PDO( "sqlite:".dirname(__FILE__)."/../SQLite/".DB_NAME.".db", "root", "root");
+				$pdo = new PDO( "sqlite:".dirname(__FILE__)."/../SQLite/$dbName.db", "root", "root");
 				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 			} catch( PDOException $e ){ var_dump($e->getMessage()); exit; }
@@ -43,7 +44,7 @@ class DBICore{
 		$stmt = $this->pdo->exec($sql);
 	}
 
-	public function add($table, $uid, $keys, $vals, $uniques=null){
+	public function addRecord($table, $uid, $keys, $vals, $uniques=null){
 		printf("	INSERT to %-10s -> ", $table);
 		if($uniques == null) $uniques = $keys;
 		$where = Parser::uniquesToStr($uniques,$keys, $vals);
@@ -137,10 +138,10 @@ class DBICore{
 		if(!$stmt) return null;
 		return $stmt;
 	}
-	private function like($table, $field, $wherekey, $whereval){
-		$sql = "select $field from $table where $wherekey like :key";
+	private function like($table, $field, $whereKey, $whereVal){
+		$sql = "select $field from $table where $whereKey like :key";
 		$stmt = $this->pdo->prepare($sql);
-		$like = '%'."$whereval".'%';
+		$like = '%'."$whereVal".'%';
 		$stmt->bindParam(":key", $like, PDO::PARAM_STR);
 		$stmt->execute();
 		return $stmt;
