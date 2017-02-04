@@ -10,28 +10,31 @@ class installer{
 		$dbi = new DBI();
 		foreach($tables as $table){
 			$sql = self::parseTableToSQL($table);
-			Console::logln($sql,"Blue");
+			$dbi->dropTable($table->name);
 			$dbi->createTable($table->name, $sql);
+			// $dbi->alterIndex($table->name, $table->index);
 		}
-		var_dump($dbi);
 	}
 
 	private static function parseTableToSQL($table){
 		$sql = "";
 		foreach($table->fields as $index=>$field){
 			$sql .= $field->name." ".$field->type." ".$field->option;
-			if($index<count($table->fields)-1){
-				$sql .= ", ";
-			}
+			if($index<count($table->fields)-1) $sql .= ", ";
 		}
 		if(count($table->uniques)>0){
-			$sql .= ", unique(";
-			foreach($table->uniques as $unique){
-				$sql .= $unique;
-			}
-			$sql .= ")";
+			$sql .= ", unique(".self::parseUniquesToStr($table->uniques).")";
 		}
 		return $sql;
+	}
+
+	private static function parseUniquesToStr($uniques){
+		$str = "";
+		foreach($uniques as $index=>$unique){
+			$str .= $unique;
+			if($index<count($uniques)-1) $str .= ", ";
+		}
+		return $str;
 	}
 }
 

@@ -15,15 +15,15 @@ class DBICore{
 		$this->pass = $setting->pass;
 		$this->dbms = $setting->dbms;
 
-		if( $dbms == "mysql" ){
-			try{ $pdo = new PDO( "mysql:host=$host; dbname=$dbName;charset=utf8;", $user, $pass ); }
+		if( $this->dbms == "mysql" ){
+			try{ $pdo = new PDO( "mysql:host=".$this->host."; dbname=".$this->dbName.";charset=utf8;", $this->user, $this->pass ); }
 			catch( PDOException $e ){ var_dump($e->getMessage()); exit; }
 		}else{
 			if(!file_exists(dirname(__FILE__)."/../SQLite")){
 				mkdir(dirname(__FILE__)."/../SQLite");
 			}
 			try{
-				$pdo = new PDO( "sqlite:".dirname(__FILE__)."/../SQLite/$dbName.db", "root", "root");
+				$pdo = new PDO( "sqlite:".dirname(__FILE__)."/../SQLite/$this->dbName.db", "root", "root");
 				$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 			} catch( PDOException $e ){ var_dump($e->getMessage()); exit; }
@@ -36,7 +36,8 @@ class DBICore{
 	 * --------------------------------------------- */
 	public function createTable($table, $sql){
 		$sql = "CREATE TABLE IF NOT EXISTS $table ($sql)";
-		Console::logln($sql,"Purple");
+		Console::log("[CREATE TABLE]","Green", 4, true);
+		Console::logln(" $table");
 		$stmt = $this->pdo->exec($sql);
 	}
 	
@@ -60,6 +61,7 @@ class DBICore{
 			return $id;
 		}
 	}
+
 
 	/* ---------------------------------------------
 	 * QUERY
@@ -119,6 +121,12 @@ class DBICore{
 	/* ---------------------------------------------
 	 * DELETE
 	 * --------------------------------------------- */
+	public function dropTable($table){
+		Console::log("[DROP TABLE]","Red", 4, true);
+		Console::logln(" $table");
+		$sql = "DROP TABLE IF EXISTS $table";
+		$this->pdo->exec($sql);
+	}
 	public function delete($table, $whereKeys, $whereVals){
 		$where = Parser::arrToParamStr($whereKeys, "=:", " AND ");
 		$sql = "delete from $table where $where";
