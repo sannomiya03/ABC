@@ -12,7 +12,6 @@
 				}
 			}
 			return rtrim($where, " AND ");
-			return $where;
 		}
 		
 		public static function keysToParamStr($keys, $bindingSymbol, $connectionSymbol){

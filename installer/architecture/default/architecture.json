@@ -5,9 +5,14 @@
 		"uniques": ["taxonomy_id"],
 		"fields": [
 			{
-				"name": "property",
+				"name": "taxonomy",
 				"type": "string",
 				"option": "not null"
+			},
+			{
+				"name": "parent",
+				"type": "int",
+				"option": ""
 			}
 		]
 	},
@@ -23,9 +28,9 @@
 				"option": "not null"
 			},
 			{
-				"name": "parent",
-				"type": "int",
-				"option": ""
+				"name": "property",
+				"type": "string",
+				"option": "not null"
 			}
 		]
 	}

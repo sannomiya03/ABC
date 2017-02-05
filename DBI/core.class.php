@@ -47,26 +47,25 @@ class DBICore{
 	}
 
 	public function addRecord($table, $uid, $keys, $vals, $uniques=null){
-		if($uniques == null) $uniques=$keys;
+		if($uniques == null) $uniques = $keys;
+		Console::log("INSERT to $table (uid: $uid) -> ", "Brown", 5, true);
 		$where = Parser::uniquesToWhere($uniques, $keys, $vals);
 		// Console::logln($where, "Black", 6, true);
-		foreach($keys as $index=>$key){
+		// foreach($keys as $index=>$key){
 			// Console::log("[$index] ", "Cyan", 6, true);
 			// Console::logln("$key : $vals[$index] ");
-		}
+		// }
 		$id = $this->getValue($table, $uid, $where);
-		Console::logln("INSERT to $table (uid: $uid) -> ", "Brown", 5, true);
-		if($id == ""){
-			$id = $this->insert($table, $keys, $vals, $uniques);
+		if($id == null){
+			$this->insert($table, $keys, $vals);
 			$id = $this->getValue($table, $uid, $where);
-			Console::logln("[NEW] id: $id", "Green", 6, true);
+			Console::logln("[NEW] id: $id", "Green");
 			return $id;
 		}else{
-			Console::logln("[ALREADY EXIST] id: $id", "Blue", 6, true);
+			Console::logln("[ALREADY EXIST] id: $id", "Blue");
 			return $id;
 		}
 	}
-
 
 	/* ---------------------------------------------
 	 * QUERY
@@ -149,6 +148,7 @@ class DBICore{
 	 * --------------------------------------------- */
 	private function select($table, $field, $where=""){
 		$sql = "select $field from ".$table." ".$where;
+		// Console::logln($sql,"LightBlue");
 		$stmt = $this->pdo->query($sql);
 		if(!$stmt) return null;
 		return $stmt;
@@ -167,7 +167,7 @@ class DBICore{
 		$keyStr = Parser::keysToParamStr($keys, "", ", ");
 		$valStr = Parser::keysToBindParamStr($keys, ":", ", ");
 		$sql = "insert into $table ( $keyStr ) value ( $valStr )";
-		// Console::logln($sql, "Black", 7, true);
+		// Console::logln($sql, "Black", 6, true);
 		try{
 			$stmt = $this->pdo->prepare($sql);
 			foreach($keys as $index=>$key)

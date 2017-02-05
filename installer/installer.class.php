@@ -10,7 +10,7 @@ class installer{
 		Console::logln("LOAD [MANIFEST]", "Green", 2,true);
 		$tables = DBArcMaker::makeManifest();
 		$dbi = new DBI();
-		// self::createTables($dbi, $tables);
+		self::createTables($dbi, $tables);
 		self::loadSeeds($dbi, $tables);
 	}
 
@@ -42,16 +42,34 @@ class installer{
 			$seedObjects = self::makeSeedObjects($list, $line);
 
 			foreach($tables as $table){
-				if(self::isPropRelationTable($table->name)) continue;
-				foreach($seedObjects as $tableName=>$seedObject){
-					if($tableName != $table->name) continue;
-					// Console::log("INSERT > ", "Black", 5, true);
-					// Console::logln($table->name, "Brown");
-					$seedObject = self::addDependingField($seedObject, $table, $tables, $dbi);
-					$insertObj = self::parseSeedObjToInsertObj($seedObject);
-					$dbi->append($table->name, $table->uid, $insertObj->keys, $insertObj->values, $table->uniques);
-					// Console::logln($insertObj);
+				if(!self::isPropRelationTable($table->name)){
+					self::importSeeds($seedObjects, $table, $tables, $dbi);
+				}else{
+					self::importPropSeeds($seedObjects, $table, $tables, $dbi);
 				}
+			}
+		}
+	}
+
+	private static function importSeeds($seedObjects, $table, $tables, $dbi){
+		foreach($seedObjects as $tableName=>$seedObject){
+			if($tableName != $table->name) continue;
+			$seedObject = self::addDependingField($seedObject, $table, $tables, $dbi);
+			$insertObj = self::parseSeedObjToInsertObj($seedObject);
+			$dbi->append($table->name, $table->uid, $insertObj->keys, $insertObj->values, $table->uniques);
+		}
+	}
+
+	private static function importPropSeeds($seedObjects, $table, $tables, $dbi){
+		foreach($seedObjects as $tableName=>$seedObject){
+			if($tableName != $table->name) continue;
+			foreach($seedObject as $taxonomy=>$property){
+				$targetTableName = str_replace("_properties", "", $table->name);
+				$targetTable = self::getTable($tables, $targetTableName);
+				$tableTableUID = $targetTable->uid;
+				$where = self::parseSeedObjToWhere($seedObjects[$targetTableName], $targetTable->uniques);
+				$targetID = $dbi->getValue($targetTableName, $tableTableUID, $where);
+				$dbi->appendProperty($targetTableName, $tableTableUID, $targetID, $property, $taxonomy);
 			}
 		}
 	}
@@ -61,7 +79,7 @@ class installer{
 			$dependingTable = self::getTable($tables, $dependency);
 			$arr = (array)$seedObject;
 			if(!isset($arr[$dependingTable->uid])){
-				$where = self::parseSeedObjToWhere($seedObject, $table, $tables, $dependingTable->name);
+				$where = self::parseSeedObjToWhere($seedObject, $table->uniques);
 				$id = $dbi->getValue($dependingTable->name, $dependingTable->uid, $where);
 				$arr[$dependingTable->uid] = null;
 				$seedObject = (object)$arr;
@@ -70,12 +88,12 @@ class installer{
 		return $seedObject;
 	}
 
-	private static function parseSeedObjToWhere($seedObject, $table, $tables, $dependingTableName){
+	private static function parseSeedObjToWhere($seedObject, $uniques){
 		$where = "where ";
-		foreach($table->uniques as $unique){
+		foreach($uniques as $unique){
 			foreach($seedObject as $key=>$value){
 				if($key == $unique){
-					$where .= "$unique == '$value', ";
+					$where .= "$unique = '$value', ";
 				}
 			}
 		}

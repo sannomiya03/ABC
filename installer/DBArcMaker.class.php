@@ -10,7 +10,6 @@ class DBArcMaker{
 
 
 	/* ------------------------------------------ */
-
 	public static function loadManifest(){
 		return FileIO::loadJSON(dirname(__FILE__).self::$ARC_DIR."/manifest.json");
 	}
@@ -24,7 +23,6 @@ class DBArcMaker{
 	}
 
 	/* ------------------------------------------ */
-
 	private static function loadTables(){
 		$defArcPath = dirname(__FILE__).self::$ARC_DIR.self::$DEF_ARC_DIR."/architecture.json";
 		$urerArcPath = dirname(__FILE__).self::$ARC_DIR.self::$USER_ARC_DIR."/architecture.json";
@@ -95,7 +93,7 @@ class DBArcMaker{
 			if($table->useProperty){
 				$propRelTable = new stdClass;
 				$propRelTable->name = $table->name."_properties";
-				$propRelTable->uid = $table->uid."_property_id";
+				$propRelTable->uid = str_replace("_id", "", $table->uid)."_property_id";
 				$propRelTable->dependencies = array($table->name, "properties");
 				$propRelTable->uniques = array($table->uid, "property_id");
 				$propRelTable = self::initTable($propRelTable);
@@ -108,7 +106,6 @@ class DBArcMaker{
 
 
 	/* ------------------------------------------ */
-
 	private static function newField($name, $type, $option){
 		$field = new stdClass;
 		$field->name = $name;
