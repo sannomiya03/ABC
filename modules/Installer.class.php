@@ -1,14 +1,17 @@
 <?php
-require_once dirname(__FILE__)."/DBArcMaker.class.php";
 require_once dirname(__FILE__)."/../DBI/DBI.class.php";
-require_once dirname(__FILE__)."/../modules/Console.class.php";
-require_once dirname(__FILE__)."/../modules/FileIO.class.php";
-require_once dirname(__FILE__)."/../modules/File.class.php";
+require_once dirname(__FILE__)."/ManifestMaker.class.php";
+require_once dirname(__FILE__)."/TableCollection.class.php";
+require_once dirname(__FILE__)."/Console.class.php";
+require_once dirname(__FILE__)."/FileIO.class.php";
+require_once dirname(__FILE__)."/File.class.php";
 
 class installer{
+	public static $SEED_DIR = "/../installer/seeds";
+
 	public static function install(){
 		Console::logln("LOAD [MANIFEST]", "Green", 2,true);
-		$tables = DBArcMaker::makeManifest();
+		$tables = ManifestMaker::makeManifest();
 		$dbi = new DBI();
 		self::createTables($dbi, $tables);
 		self::loadSeeds($dbi, $tables);
@@ -16,7 +19,7 @@ class installer{
 
 	private static function createTables($dbi, $tables){
 		foreach($tables as $table){
-			$sql = self::parseTableToSQL($table);
+			$sql = TableCollection::tableToSQL($table);
 			$dbi->dropTable($table->name);
 			$dbi->createTable($table->name, $sql);
 			// $dbi->alterIndex($table->name, $table->index);
@@ -24,7 +27,7 @@ class installer{
 	}
 
 	private static function loadSeeds($dbi, $tables){
-		$dir = dirname(__FILE__)."/seeds";
+		$dir = dirname(__FILE__).self::$SEED_DIR;
 		$files = FileIO::loadDir($dir);
 		foreach($files as $file){
 			$ext = File::getExt($file);
@@ -88,6 +91,7 @@ class installer{
 		return $seedObject;
 	}
 
+	/*-------------------------------*/
 	private static function parseSeedObjToWhere($seedObject, $uniques){
 		$where = "where ";
 		foreach($uniques as $unique){
@@ -116,27 +120,6 @@ class installer{
 			$seedObjects[$table][$key] = $value;
 		}
 		return $seedObjects;
-	}
-
-	private static function parseTableToSQL($table){
-		$sql = "";
-		foreach($table->fields as $index=>$field){
-			$sql .= $field->name." ".$field->type." ".$field->option;
-			if($index<count($table->fields)-1) $sql .= ", ";
-		}
-		if(count($table->uniques)>0){
-			$sql .= ", unique(".self::parseUniquesToStr($table->uniques).")";
-		}
-		return $sql;
-	}
-
-	private static function parseUniquesToStr($uniques){
-		$str = "";
-		foreach($uniques as $index=>$unique){
-			$str .= $unique;
-			if($index<count($uniques)-1) $str .= ", ";
-		}
-		return $str;
 	}
 }
 

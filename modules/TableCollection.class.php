@@ -1,11 +1,11 @@
 <?php
-require_once dirname(__FILE__)."/../installer/DBArcMaker.class.php";
+require_once dirname(__FILE__)."/ManifestMaker.class.php";
 
 class TableCollection{
 	public $tables;
 
 	public function __construct(){
-		$this->tables = DBArcMaker::loadManifest();
+		$this->tables = ManifestMaker::loadManifest();
 	}
 
 	public function getTables(){
@@ -48,5 +48,26 @@ class TableCollection{
 
 	public function isPropTable($tableName){
 		return strpos($tableName,'_properties') !== false;
+	}
+
+	public static function tableToSQL($table){
+		$sql = "";
+		foreach($table->fields as $index=>$field){
+			$sql .= $field->name." ".$field->type." ".$field->option;
+			if($index<count($table->fields)-1) $sql .= ", ";
+		}
+		if(count($table->uniques)>0){
+			$sql .= ", unique(".self::uniquesToStr($table->uniques).")";
+		}
+		return $sql;
+	}
+
+	public static function uniquesToStr($uniques){
+		$str = "";
+		foreach($uniques as $index=>$unique){
+			$str .= $unique;
+			if($index<count($uniques)-1) $str .= ", ";
+		}
+		return $str;
 	}
 }

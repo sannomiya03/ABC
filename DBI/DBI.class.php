@@ -1,9 +1,9 @@
 <?php
 require_once dirname(__FILE__)."/Core.class.php";
-require_once dirname(__FILE__)."/TableCollection.class.php";
+require_once dirname(__FILE__)."/../modules/TableCollection.class.php";
 require_once dirname(__FILE__)."/../modules/FileUploader.class.php";
 require_once dirname(__FILE__)."/../modules/Console.class.php";
-require_once dirname(__FILE__)."/../installer/DBArcMaker.class.php";
+require_once dirname(__FILE__)."/../modules/ManifestMaker.class.php";
 
 class DBI extends DBICore{
 	public $uploader, $collection;

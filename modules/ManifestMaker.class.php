@@ -1,24 +1,25 @@
 <?php
-require_once "./../modules/FileIO.class.php";
-require_once "./../modules/File.class.php";
-require_once "./../modules/Console.class.php";
+require_once dirname(__FILE__)."/FileIO.class.php";
+require_once dirname(__FILE__)."/File.class.php";
+require_once dirname(__FILE__)."/Console.class.php";
 
-class DBArcMaker{
-	public static $ARC_DIR = "/architecture";
+class ManifestMaker{
+	public static $ARC_DIR = "/../installer/architecture";
 	public static $DEF_ARC_DIR= "/default";
 	public static $USER_ARC_DIR = "/user";
+	public static $SAVE_DIR = "/../DBI";
 
 
 	/* ------------------------------------------ */
 	public static function loadManifest(){
-		return FileIO::loadJSON(dirname(__FILE__).self::$ARC_DIR."/manifest.json");
+		return FileIO::loadJSON(dirname(__FILE__).self::$SAVE_DIR."/manifest.json");
 	}
 
 	public static function makeManifest(){
 		$tables = self::loadTables();
 		$tables = self::initTables($tables);
 		$tables = self::addPropatyRelationTables($tables);
-		FileIO::save($tables, dirname(__FILE__).self::$ARC_DIR."/manifest.json");
+		FileIO::save($tables, dirname(__FILE__).self::$SAVE_DIR."/manifest.json");
 		return $tables;
 	}
 

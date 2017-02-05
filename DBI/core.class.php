@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__FILE__)."/Parser.class.php";
+require_once dirname(__FILE__)."/../modules/Parser.class.php";
 require_once dirname(__FILE__)."/../modules/Console.class.php";
 require_once dirname(__FILE__)."/../modules/FileIO.class.php";
 
