@@ -1,57 +1,56 @@
 <?php
 require_once dirname(__FILE__)."/Core.class.php";
+require_once dirname(__FILE__)."/TableCollection.class.php";
 require_once dirname(__FILE__)."/../modules/FileUploader.class.php";
 require_once dirname(__FILE__)."/../modules/Console.class.php";
 require_once dirname(__FILE__)."/../installer/DBArcMaker.class.php";
-require_once dirname(__FILE__)."/TablesManager.class.php";
 
 class DBI extends DBICore{
-	public $uploader, $tables;
+	public $uploader, $collection;
 	
 	public function __construct(){
 		parent::__construct();
-		$this->tables = DBArcMaker::loadManifest();
+		$this->collection = new TableCollection();
 		$this->uploader = new FileUploader();
 	}
 
-	public function append($table, $uid, $keys, $vals, $uniques=null){
+	public function append($tableName, $keys, $vals){
+		$table = $this->collection->getTable($tableName);
 		array_push( $keys, "created" );
 		array_push( $vals, null );
-		return $this->addRecord($table, $uid, $keys, $vals, $uniques);
+		return $this->addRecord($tableName, $table->uid, $keys, $vals, $table->uniques);
 	}
 
-	public function appendProperty($tableName, $tableUIDName, $tableID, $property, $taxonomy){
-		if($property==null || $property==""){ Console::logln("\$PROPETY is EMPTY!","Red"); return; }
-		if($taxonomy==null || $taxonomy==""){ Console::logln("\$TAXONOMY is EMPTY!","Red"); return; }
-		$targetTableName = $tableName."_properties";
-		$targetUIDName = str_replace("_id", "", $tableUIDName)."_property_id";
+	public function appendProperty($tableName, $fieldID, $property, $taxonomy){
+		if($property==null || $property==""){ Console::logln("[ATTENTION!] \$PROPETY is EMPTY!","Red"); return; }
+		if($taxonomy==null || $taxonomy==""){ Console::logln("[ATTENTION!] \$TAXONOMY is EMPTY!","Red"); return; }
+		$table = $this->collection->getTable($tableName);
+		$propTable = $this->collection->getPropTable($tableName);
 		$property_id = $this->addProperty($property, $taxonomy);
-		$keys = array($tableUIDName, "property_id");
-		$vals = array($tableID, $property_id);
-		$uniques = $keys;
-		return $this->append($targetTableName, $targetUIDName, $keys, $vals, $uniques);
+		$keys = array($table->uid, "property_id");
+		$vals = array($fieldID, $property_id);
+		return $this->append($propTable->name, $keys, $vals);
 	}
 
 	public function addProperty($property, $taxonomy){
 		if($property==null || $property==""){ Console::logln("\$PROPETY is EMPTY!","Red"); return; }
 		if($taxonomy==null || $taxonomy==""){ Console::logln("\$TAXONOMY is EMPTY!","Red"); return; }
 		$taxonomy_id = $this->addTaxonomy($taxonomy);
-		$property_id = $this->getValue("properties", "property_id", "where property='$property' AND taxonomy_id='$taxonomy_id'");
+		$property_id = $this->getID("properties", "where property='$property' AND taxonomy_id='$taxonomy_id'");
 		if($property_id != "") return $property_id;
 		$keys = array( "property", "taxonomy_id" );
 		$vals = array( $property, $taxonomy_id );
-		$uniques = $keys;
-		return $this->append("properties", "property_id", $keys, $vals, $uniques);
+		return $this->append("properties", $keys, $vals);
 	}
 	
 	public function addTaxonomy($taxonomy, $parent=""){
 		if($taxonomy==null || $taxonomy==""){ Console::logln("\$TAXONOMY is EMPTY!","Red"); return; }
-		$taxonomy_id = $this->getValue("taxonomies", "taxonomy_id", "where taxonomy='$taxonomy'");
+		$taxonomy_id = $this->getID("taxonomies", "where taxonomy='$taxonomy'");
 		if($taxonomy_id != "") return $taxonomy_id;
 		$keys = array("taxonomy");
 		$vals = array($taxonomy);
 		if($parent != ""){
-			$parent_id = $this->getValue("taxonomies", "taxonomy_id", "where taxonomy='$parent'");
+			$parent_id = $this->getID("taxonomies", "where taxonomy='$parent'");
 			if($parent_id==null){
 				Console::log("ADD Parent taxonomy [$parent]...","Green");
 				$parent_id = $this->addTaxonomy($parent);
@@ -61,7 +60,7 @@ class DBI extends DBICore{
 			array_push($vals, $parent_id);
 		}
 		$uniques = $keys;
-		return $this->append("taxonomies", "taxonomy_id", $keys, $vals, $keys, $uniques);
+		return $this->append("taxonomies", $keys, $vals);
 	}
 
 	// public function uploadImage($instance_id, $file){
@@ -82,11 +81,17 @@ class DBI extends DBICore{
 	/* ---------------------------------------------
 	 * QUERY
 	 * --------------------------------------------- */
+	public function getID($tableName, $where){
+		$table = $this->collection->getTable($tableName);
+		return $this->getValue($tableName, $table->uid, $where);
+	}
+
 	public function get(){
 		// $table = self::$DOC_TABLE;
 		// $select = "*";
 		// return $this->getRecords( $table, $select );
 	}
+
 	// function getDocumentDetail( $instance_id ){
 	// 	$instance = $this->getField( self::$INS_TABLE, "*", "WHERE $insPK = '$this->instance_id'");
 	// 	$document = $this->getField( self::$DOC_TABLE, "*", "WHERE $docPK = '".$this->instance[$docPK]."'");

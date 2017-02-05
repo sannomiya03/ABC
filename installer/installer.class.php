@@ -30,56 +30,56 @@ class installer{
 			$ext = File::getExt($file);
 			if($ext=="csv"){
 				Console::logln("LOAD [$ext] $file", "Green", 4, true);
-				self::loadCSVSeeds($dir."/".$file, $dbi, $tables);
+				self::loadCSVSeeds($dir."/".$file, $dbi);
 			}
 		}
 	}
 
-	private static function loadCSVSeeds($path, $dbi, $tables){
+	private static function loadCSVSeeds($path, $dbi){
 		$list = FileIO::loadCSV($path);
 		foreach($list as $rowIndex=>$line){
 			if($rowIndex<3) continue;
-			$seedObjects = self::makeSeedObjects($list, $line);
-
-			foreach($tables as $table){
-				if(!self::isPropRelationTable($table->name)){
-					self::importSeeds($seedObjects, $table, $tables, $dbi);
+			$seedObjects = self::generateSeedObject($list, $line);
+			foreach($dbi->collection->getTables() as $targetTable){
+				if(!$dbi->collection->isPropTable($targetTable->name)){
+					self::importSeeds($seedObjects, $targetTable, $dbi);
 				}else{
-					self::importPropSeeds($seedObjects, $table, $tables, $dbi);
+					self::importPropSeeds($seedObjects, $targetTable, $dbi);
 				}
 			}
 		}
 	}
 
-	private static function importSeeds($seedObjects, $table, $tables, $dbi){
+	private static function importSeeds($seedObjects, $targetTable, $dbi){
 		foreach($seedObjects as $tableName=>$seedObject){
-			if($tableName != $table->name) continue;
-			$seedObject = self::addDependingField($seedObject, $table, $tables, $dbi);
-			$insertObj = self::parseSeedObjToInsertObj($seedObject);
-			$dbi->append($table->name, $table->uid, $insertObj->keys, $insertObj->values, $table->uniques);
-		}
-	}
-
-	private static function importPropSeeds($seedObjects, $table, $tables, $dbi){
-		foreach($seedObjects as $tableName=>$seedObject){
-			if($tableName != $table->name) continue;
-			foreach($seedObject as $taxonomy=>$property){
-				$targetTableName = str_replace("_properties", "", $table->name);
-				$targetTable = self::getTable($tables, $targetTableName);
-				$tableTableUID = $targetTable->uid;
-				$where = self::parseSeedObjToWhere($seedObjects[$targetTableName], $targetTable->uniques);
-				$targetID = $dbi->getValue($targetTableName, $tableTableUID, $where);
-				$dbi->appendProperty($targetTableName, $tableTableUID, $targetID, $property, $taxonomy);
+			if($targetTable->name == $tableName){
+				$seedObject = self::addDependingField($seedObject, $targetTable, $dbi);
+				$insertObj = self::parseSeedObjToInsertObj($seedObject);
+				$dbi->append($targetTable->name, $insertObj->keys, $insertObj->values);
 			}
 		}
 	}
 
-	private static function addDependingField($seedObject, $table, $tables, $dbi){
-		foreach($table->dependencies as $dependency){
-			$dependingTable = self::getTable($tables, $dependency);
+	private static function importPropSeeds($seedObjects, $targetPropTable, $dbi){
+		foreach($seedObjects as $tableName=>$seedObject){
+			if($targetPropTable->name == $tableName){
+				foreach($seedObject as $taxonomy=>$property){
+					$dependingTableName = $dbi->collection->toTableName($targetPropTable->name);
+					$table = $dbi->collection->getTable($dependingTableName);
+					$where = self::parseSeedObjToWhere($seedObjects[$table->name], $table->uniques);
+					$fieldID = $dbi->getID($table->name, $where);
+					$dbi->appendProperty($table->name, $fieldID, $property, $taxonomy);
+				}
+			}
+		}
+	}
+
+	private static function addDependingField($seedObject, $targetTable, $dbi){
+		foreach($targetTable->dependencies as $dependency){
+			$dependingTable = $dbi->collection->getTable($dependency);
 			$arr = (array)$seedObject;
 			if(!isset($arr[$dependingTable->uid])){
-				$where = self::parseSeedObjToWhere($seedObject, $table->uniques);
+				$where = self::parseSeedObjToWhere($seedObject, $targetTable->uniques);
 				$id = $dbi->getValue($dependingTable->name, $dependingTable->uid, $where);
 				$arr[$dependingTable->uid] = null;
 				$seedObject = (object)$arr;
@@ -92,9 +92,7 @@ class installer{
 		$where = "where ";
 		foreach($uniques as $unique){
 			foreach($seedObject as $key=>$value){
-				if($key == $unique){
-					$where .= "$unique = '$value', ";
-				}
+				if($key == $unique) $where .= "$unique = '$value', ";
 			}
 		}
 		return rtrim($where, ", ");
@@ -110,13 +108,7 @@ class installer{
 		return (object)array("keys"=>$keys, "values"=>$values);
 	}
 
-	private static function getTable($tables, $target){
-		foreach($tables as $table)
-			if($table->name == $target) return $table;
-		Console::logln("[NOT FOUND TABLE!] $target", "Red", 5, true);
-	}
-
-	private static function makeSeedObjects($list, $line){
+	private static function generateSeedObject($list, $line){
 		$seedObjects = array();
 		foreach($line as $colIndex=>$value){
 			$key = $list[0][$colIndex];
@@ -124,16 +116,6 @@ class installer{
 			$seedObjects[$table][$key] = $value;
 		}
 		return $seedObjects;
-	}
-
-	private static function isPropRelationTable($table){
-		return strpos($table,'_properties') !== false;
-	}
-
-	private static function hasValue($array, $value){
-		foreach($array as $item)
-			if($item == $value) return true;
-		return false;
 	}
 
 	private static function parseTableToSQL($table){
