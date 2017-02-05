@@ -70,13 +70,6 @@ class DBI extends DBICore{
 	// 	$attachmentID = $this->appendAttachment( $instance_id, "image", $params );
 	// 	return array( "name"=>$uploadImage, "id"=>$attachmentID );
 	// }
-	// public function uploadAttachmentImageByInstller( $instance_id, $file ){
-	// 	$uploadImage = $this->uploader->uploadImageOnlyOneItem( $file );
-	// 	$this->updateInstanceInfo( $instance_id, array("thumbnail"), array($uploadImage) );
-	// 	$params = array( "name"=>$uploadImage, "file_path"=>$uploadImage );
-	// 	$attachmentID = $this->appendAttachment( $instance_id, "image", $params );
-	// 	return array( "name"=>$uploadImage, "id"=>$attachmentID );
-	// }
 
 	/* ---------------------------------------------
 	 * QUERY
@@ -86,28 +79,6 @@ class DBI extends DBICore{
 		return $this->getValue($tableName, $table->uid, $where);
 	}
 
-	public function get(){
-		// $table = self::$DOC_TABLE;
-		// $select = "*";
-		// return $this->getRecords( $table, $select );
-	}
-
-	// function getDocumentDetail( $instance_id ){
-	// 	$instance = $this->getField( self::$INS_TABLE, "*", "WHERE $insPK = '$this->instance_id'");
-	// 	$document = $this->getField( self::$DOC_TABLE, "*", "WHERE $docPK = '".$this->instance[$docPK]."'");
-	// 	$attachments = getRecords( self::$ATT_TABLE, "*", "WHERE $insPK = '$this->instance_id'" );
-	// 	$result = array(
-	// 		"document_id" => $document[$docPK],
-	// 		"instance_id" => $instance[$insPK],
-	// 	);
-	// 	return $result;
-	// }
-	// function getInstanceIDByName( $docName, $insName ){
-	// 	$table = self::$DOC_TABLE." AS doc LEFT OUTER JOIN ".self::$INS_TABLE." AS ins ON (doc.".self::$DOC_PK."=ins.".self::$DOC_PK.")";
-	// 	$where = "where doc.name = '".$docName."'";
-	// 	if( $insName != "" ) $where .= " AND ins.name = '".$insName."'";
-	// 	return $this->getField( $table, "ins.".self::$INS_PK, $where )[self::$INS_PK];
-	// }
 	function getProperties(){
 		return $this->getRecords( "properties LEFT OUTER JOIN taxonomies ON ( properties.taxonomy_id = taxonomies.taxonomy_id ) ORDER BY property_id", "*" );
 	}
@@ -124,12 +95,6 @@ class DBI extends DBICore{
 		// foreach( $insIDs as $insID ) $this->dropInstance( $insID );
 		$this->delete($table, array($uidName), array($uid));
 	}
-	
-	// public function dropProperty($table, $uid, $property_id){
-	// 	$where_keys = array(self::$DOC_PK, "property_id" );
-	// 	$where_vals = array($document_id, $property_id );
-	// 	$this->delete( "document_properties", $where_keys, $where_vals );
-	// }
 	
 	/* ---------------------------------------------
 	 * UPDATE

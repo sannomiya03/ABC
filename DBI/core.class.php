@@ -50,11 +50,6 @@ class DBICore{
 		if($uniques == null) $uniques = $keys;
 		Console::log("INSERT to $table (uid: $uid) -> ", "Brown", 5, true);
 		$where = Parser::uniquesToWhere($uniques, $keys, $vals);
-		// Console::logln($where, "Black", 6, true);
-		// foreach($keys as $index=>$key){
-			// Console::log("[$index] ", "Cyan", 6, true);
-			// Console::logln("$key : $vals[$index] ");
-		// }
 		$id = $this->getValue($table, $uid, $where);
 		if($id == null){
 			$this->insert($table, $keys, $vals);
