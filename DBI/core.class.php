@@ -143,7 +143,7 @@ class DBICore{
 	 * --------------------------------------------- */
 	private function select($table, $field, $where=""){
 		$sql = "select $field from ".$table." ".$where;
-		// Console::logln($sql,"LightBlue");
+		// Console::logln($sql,"Cyan");
 		$stmt = $this->pdo->query($sql);
 		if(!$stmt) return null;
 		return $stmt;

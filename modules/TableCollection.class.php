@@ -3,7 +3,7 @@ require_once dirname(__FILE__)."/ManifestMaker.class.php";
 
 class TableCollection{
 	public $tables;
-
+	
 	public function __construct(){
 		$this->tables = ManifestMaker::loadManifest();
 	}
@@ -19,34 +19,34 @@ class TableCollection{
 	}
 
 	public function getPropTable($tableName){
-		$propTableName = $this->toPropTableName($tableName);
+		$propTableName = self::toPropTableName($tableName);
 		return $this->getTable($propTableName);
 	}
 
 	public function toPropTable($tableName){
 		$table = $this->getTable($table);
 		return (object)array(
-			"name" => $this->toPropTableName($table->name),
-			"uid" => $this->toPropUID($table->uid),
+			"name" => self::toPropTableName($table->name),
+			"uid" => self::toPropUID($table->uid),
 			"uniques" => array($table->uid, "property_id")
 		);
 	}
 
-	public function toPropTableName($tableName){
-		if($this->isPropTable($tableName)) return $tableName;
+	public static function toPropTableName($tableName){
+		if(self::isPropTable($tableName)) return $tableName;
 		return $tableName."_properties";
 	}
-	public function toPropUID($uid){
+	public static function toPropUID($uid){
 		return str_replace("_id", "", $uid);
 	}
-	public function toTableName($tableName){
+	public static function toTableName($tableName){
 		return str_replace("_properties", "", $tableName);
 	}
-	public function toUID($propUID){
+	public static function toUID($propUID){
 		return str_replace("_property_id", "", $uid);
 	}
 
-	public function isPropTable($tableName){
+	public static function isPropTable($tableName){
 		return strpos($tableName,'_properties') !== false;
 	}
 

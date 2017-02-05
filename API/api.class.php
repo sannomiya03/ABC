@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__FILE__)."/../modules/Console.class.php";
+require_once dirname(__FILE__)."/../modules/TableCollection.class.php";
 require_once dirname(__FILE__)."/../DBI/DBI.class.php";
 
 class API{
@@ -16,8 +17,8 @@ class API{
 		$optionSQL = $this->generateOrderSQL($option->order);
 		$limitSQL = $this->generateLimitSQL($option->limit);
 		Console::logln($tableSQL, "Purple");
-		Console::logln($selectSQL, "Purple");
-		Console::logln($whereSQL, "Purple");
+		// Console::logln($selectSQL, "Purple");
+		// Console::logln($whereSQL, "Purple");
 		$records = $this->dbi->getRecords($tableSQL, $selectSQL, "$whereSQL $optionSQL $limitSQL");
 		$results = $this->parseRecordsToResult($records);
 		return $results;
@@ -28,7 +29,7 @@ class API{
 		foreach($records as $record){
 			$tables = array();
 			foreach($record as $key=>$value){
-				$field = explode("___", $key);
+				$field = explode("____", $key);
 				if(count($field)<2) continue;
 				$tableName = $field[0];
 				$fieldName = $field[1];
@@ -40,12 +41,48 @@ class API{
 		return $results;
 	}
 
+	// private function addProperties($results, $option){
+	// 	foreach($option->include as $tableName){
+	// 		if(TableCollection::isPropTable($tableName)){
+	// 			$propTable = $this->dbi->collection->getTable($tableName);
+	// 			$dependingTable = $this->dbi->collection->getTable(TableCollection::toTableName($tableName));
+	// 			$properties = array();
+				
+	// 			$tableSQL = $propTable->name." LEFT OUTER JOIN properties ON ( ".propTable->name.".".$propTable->uid." = $subTableName.".$subTable->uid." )";
+	// 			if(TableCollection::isPropTable($subTableName)){
+	// 				$propTable = $this->dbi->collection->getTable("properties");
+	// 				$sql .= " LEFT OUTER JOIN ".$propTable->name." ON ( ".$subTableName.".".$propTable->uid." = ".$propTable->name.".".$propTable->uid." )";
+	// 				$taxTable = $this->dbi->collection->getTable("taxonomies");
+	// 				$sql .= " LEFT OUTER JOIN ".$taxTable->name." ON ( properties.taxonomy_id = taxonomies.taxonomy_id )";
+	// 			}
+	// 			$tableSQL = $this->generateTableSQL($option->table, $option->include);
+	// 			$selectSQL = $this->generateSelectSQL($option->fields, $option->table, $option->include);
+	// 			$whereSQL = $this->generateWhereSQL($option->filters);
+	// 			$optionSQL = $this->generateOrderSQL($option->order);
+	// 			$limitSQL = $this->generateLimitSQL($option->limit);
+	// 			$propRecords = $this->dbi->getRecords($table->name, "*", "");
+	// 		}
+	// 	}
+	// 	return $results;
+	// }
+
+	/*-----------------------------------------*/
 	private function generateTableSQL($tableName, $include){
 		$sql = "$tableName";
 		$table = $this->dbi->collection->getTable($tableName);
 		foreach($include as $index=>$subTableName){
 			$subTable = $this->dbi->collection->getTable($subTableName);
-			$sql .= " LEFT OUTER JOIN $subTableName ON ( $tableName.".$table->uid." = $subTableName.".$subTable->uid." )";
+			if(!TableCollection::isPropTable($subTableName)){
+				$sql .= " LEFT OUTER JOIN $subTableName ON ( $tableName.".$subTable->uid." = $subTableName.".$subTable->uid." )";
+			}else{
+				// $dependingTableName = TableCollection::toTableName($subTableName);
+				// $dependingTable = $this->dbi->collection->getTable($dependingTableName);
+				// $sql .= " LEFT OUTER JOIN $subTableName ON ( ".$dependingTable->name.".".$dependingTable->uid." = $subTableName.".$subTable->uid." )";
+				// $propTable = $this->dbi->collection->getTable("properties");
+				// $sql .= " LEFT OUTER JOIN ".$propTable->name." ON ( ".$subTable->name.".".$dependingTable->uid." = ".$propTable->name.".".$dependingTable->uid." )";
+				// $taxTable = $this->dbi->collection->getTable("taxonomies");
+				// $sql .= " LEFT OUTER JOIN ".$taxTable->name." ON ( properties.taxonomy_id = taxonomies.taxonomy_id )";
+			}
 		}
 		return $sql;
 	}
@@ -57,13 +94,15 @@ class API{
 			array_push($tables, $this->dbi->collection->getTable($subTableName));
 		}
 		foreach($tables as $table){
-			foreach($table->fields as $field){
-				if(count($fields) == 0){
-					$sql .= $table->name.".".$field->name." AS ".$table->name."___".$field->name.", ";
-				}else{
-					foreach($fields as $targetField){
-						if($field->name == $targetField){
-							$sql .= $table->name.".".$field->name.", ";
+			if(!TableCollection::isPropTable($table->name)){
+				foreach($table->fields as $field){
+					if(count($fields) == 0){
+						$sql .= $table->name.".".$field->name." AS ".$table->name."____".$field->name.", ";
+					}else{
+						foreach($fields as $targetField){
+							if($field->name == $targetField){
+								$sql .= $table->name.".".$field->name.", ";
+							}
 						}
 					}
 				}
