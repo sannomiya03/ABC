@@ -14,10 +14,9 @@ $option->filters = (isset($_GET["filters"]))? $_GET["filters"]: array();
 // SET OPTION LIKE THIS
 // $option->limit = 30;
 // $option->table = "papers";
-// $option->order = "paper_id";
-$option->page = -1;
+$option->order = "paper_id";
+$option->page = 0;
 $option->include = array("paper_groups", "paper_groups_properties");
-// $option->include = array("paper_groups", "paper_groups_properties");
 // $option->filters = array("paper_id>10", "paper_id<20");
 
 $api = new API();

@@ -13,10 +13,10 @@ $option->filters = (isset($_GET["filters"]))? $_GET["filters"]: array();
 
 // SET OPTION LIKE THIS
 // $option->limit = 30;
-// $option->table = "papers";
+$option->table = "paper_groups";
 // $option->order = "paper_id";
 $option->page = -1;
-$option->include = array("paper_groups", "paper_groups_properties");
+$option->include = array("papers", "paper_groups_properties");
 // $option->include = array("paper_groups", "paper_groups_properties");
 // $option->filters = array("paper_id>10", "paper_id<20");
 
@@ -24,6 +24,8 @@ $api = new API();
 $records = $api->get($option);
 Console::logln("[SIZE] ".count($records),"Green");
 if(count($records)>0) Console::logln($records[0]);
+if(count($records)>1) Console::logln($records[1]);
+if(count($records)>2) Console::logln($records[2]);
 
 // echo raw_json_encode($records);
 
